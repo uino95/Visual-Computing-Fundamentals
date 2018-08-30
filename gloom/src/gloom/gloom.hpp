@@ -13,7 +13,7 @@
 const int         windowWidth     = 1024;
 const int         windowHeight    = 768;
 const std::string windowTitle     = "OpenGL";
-const GLint       windowResizable = GL_FALSE;
+const GLint       windowResizable = GL_TRUE;
 const int         windowSamples   = 4;
 
 #endif
