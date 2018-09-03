@@ -2,6 +2,8 @@
 #include "program.hpp"
 #include "gloom/gloom.hpp"
 #include "gloom/shader.hpp"
+#include <math.h>
+#include <iostream>
 
 unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount);
 
@@ -37,41 +39,42 @@ void runProgram(GLFWwindow* window)
     };
 
     float coordinates4[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, -0.6f, 0.0f,
-        0.6f, -0.6f, 0.0f,
+        0.5, 0.0, 0.0,
+        0.5, 0.730, 0.0,
+        0.0, 0.730, 0.0,
     };
 
     float coordinates5[] = {
-        -0.3, 0.0, 0.0,
-        0.3, 0.0, 0.0,
-        0.0, 0.3, 0.0,
+        0.0, 0.0, 0.0,
+        0.5, 0.0, 0.0,
+        0.0, 0.730, 0.0,
     };
 
     float coordinates[] = {
-        0.6, -0.8, -1.2,
+        -1.2, -0.8, 0.6,
+        1.2, -0.2, -0.8,
         0.0, 0.4, 0.0,
-        -0.8, -0.2, 0.0,
+        
     };
 
-    int index[] = {1,2,0};
+    int index[] = {0,1,2};
 
-    //int attributeIndex = glGetAttribLocation(shader.get(), "vec3");
+    //Set up the Vertex Array Objects
+    unsigned int vaoID = setUpVAO(coordinates1, index, sizeof(coordinates), sizeof(index));
+    // unsigned int vaoID1 = setUpVAO(coordinates1, index, sizeof(coordinates1), sizeof(index));
+    // unsigned int vaoID2 = setUpVAO(coordinates2, index, sizeof(coordinates2), sizeof(index));
+    // unsigned int vaoID3 = setUpVAO(coordinates3, index, sizeof(coordinates3), sizeof(index));
+    // unsigned int vaoID4 = setUpVAO(coordinates4, index, sizeof(coordinates4), sizeof(index));
+    // unsigned int vaoID5 = setUpVAO(coordinates5, index, sizeof(coordinates5), sizeof(index));
 
-    // unsigned int vaoID1 = setUpVAO(coordinates, index, 9, 3);
-    unsigned int vaoID1 = setUpVAO(coordinates1, index, 9, 3);
-    unsigned int vaoID2 = setUpVAO(coordinates2, index, 9, 3);
-    unsigned int vaoID3 = setUpVAO(coordinates3, index, 9, 3);
-    unsigned int vaoID4 = setUpVAO(coordinates4, index, 9, 3);
-    unsigned int vaoID5 = setUpVAO(coordinates5, index, 9, 3);
-
+    // Load the two shader
     Gloom::Shader shader;
-    // shader.attach("/Users/uino/Dev/gloom/gloom/shaders/simple.vert");
-    // shader.attach("/Users/uino/Dev/gloom/gloom/shaders/simple.frag");
-    // shader.link();
-    shader.makeBasicShader("/Users/uino/Dev/gloom/gloom/shaders/simple.vert", "/Users/uino/Dev/gloom/gloom/shaders/simple.frag");
-    shader.activate();
 
+    // Compile and link the two shader
+    shader.makeBasicShader("/Users/uino/Dev/gloom/gloom/shaders/simple.vert", "/Users/uino/Dev/gloom/gloom/shaders/simple.frag");
+    
+    // Activate the two shaders
+    shader.activate();
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window))
@@ -80,20 +83,23 @@ void runProgram(GLFWwindow* window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw your scene here
-        glBindVertexArray(vaoID1);
+        // Bind the current Vertex Array Object
+        glBindVertexArray(vaoID);
+        
+        // // Draw the current Vertex Array Object
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-        glBindVertexArray(vaoID2);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(vaoID2);
+        // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-        glBindVertexArray(vaoID3);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(vaoID3);
+        // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-        glBindVertexArray(vaoID4);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(vaoID4);
+        // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-        glBindVertexArray(vaoID5);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(vaoID5);
+        // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
 
         // Handle other events
@@ -117,24 +123,34 @@ void handleKeyboardInput(GLFWwindow* window)
 
 unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount){
 
+	// Allocate space in memory for the VAO, VBO and the index buffer
     unsigned int vaoID = 0;
     unsigned int vboID = 0;
     unsigned int indexID = 0;
 
+    // Generate and bind the vertex array object
     glGenVertexArrays(1, &vaoID);
     glBindVertexArray(vaoID);
 
+    // Generate and bind the Vertex Buffer Object
     glGenBuffers(1, &vboID);
     glBindBuffer(GL_ARRAY_BUFFER, vboID);
+    // Fill the buffer with the actual data
     glBufferData(GL_ARRAY_BUFFER, cCount*sizeof(float), coordinates, GL_STATIC_DRAW);
 
     int attributeIndex = 0;
+    // Fill the table of the VAO attributes with: index, number of objects, type of the values, normalised?, stride, pointer 
     glVertexAttribPointer(attributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    // Enable the VAO
     glEnableVertexAttribArray(attributeIndex);
 
+    // Generate and bind the index buffer
     glGenBuffers(1, &indexID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexID);
+    // Fill the buffer with the actual data;
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, iCount*sizeof(int), index, GL_STATIC_DRAW);
 
+    // Return the Vao ID, in order to let the program designing it later 
     return vaoID;
 }
+
