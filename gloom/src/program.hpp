@@ -12,6 +12,20 @@
 // Main OpenGL program
 void runProgram(GLFWwindow* window);
 
+unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension);
+
+// Implementatio of the effective draw
+void draw(GLFWwindow* window, unsigned int vaoID, int number_of_triangles, int drawing_mode);
+
+void drawFiveTriangles(GLFWwindow* window);
+
+void drawSingleTriangle(GLFWwindow* window);
+
+void drawCircle(GLFWwindow* window, float cx, float cy, float r);
+
+void drawSpiral(GLFWwindow* window, float cx, float cy, float r, int times);
+
+void drawChangingColorInTime(GLFWwindow* window, int uniformLocation);
 
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
