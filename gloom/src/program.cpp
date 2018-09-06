@@ -26,7 +26,7 @@ void runProgram(GLFWwindow* window){
     //          - simple.frag, basic fragment shader
     //          - texture.frag, fragment shader which add a checkerboard texture on the object
     //          - changeColorInTime, fragment shader which change the color of the object during the time
-    shader.makeBasicShader("../gloom/shaders/mirror.vert", "../gloom/shaders/changeColorInTime.frag");
+    shader.makeBasicShader("../gloom/shaders/simple.vert", "../gloom/shaders/changeColorInTime.frag");
     
     // Activate the two shaders
     shader.activate();
@@ -34,13 +34,13 @@ void runProgram(GLFWwindow* window){
     // get the location of the uniform variable (I've to do like this because glsl version 330 doesn't support direct use of layout(location = 0)))
     int uniformLocation = glGetUniformLocation(shader.get(), "colorTimeOut");
 
-    // Uncomment one of this to draw the respective shape
+    // Uncomment one of this to draw the corresponding object
 
     //drawFiveTriangles(window);
     //drawSingleTriangle(window);
     //drawCircle(window, 0.0, 0.0, 0.5);
     //drawSpiral(window, 0.0, 0.0, 0.5, 5);
-    drawChangingColorInTime(window, uniformLocation);
+    drawChangingColorInTime(window, uniformLocation); //make sure to select the correct shader at line 29 --> changeColorInTime
 
 }
 
