@@ -14,6 +14,8 @@ void runProgram(GLFWwindow* window);
 
 unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension);
 
+unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension, float* RGBAcolor, int colorCount);
+
 // Implementatio of the effective draw
 void draw(GLFWwindow* window, unsigned int vaoID, int number_of_triangles, int drawing_mode);
 
@@ -26,6 +28,8 @@ void drawCircle(GLFWwindow* window, float cx, float cy, float r);
 void drawSpiral(GLFWwindow* window, float cx, float cy, float r, int times);
 
 void drawChangingColorInTime(GLFWwindow* window, int uniformLocation);
+
+void drawTransformation(GLFWwindow* window, int uniformLocation);
 
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
