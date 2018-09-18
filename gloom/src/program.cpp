@@ -32,10 +32,11 @@ void runProgram(GLFWwindow* window){
     // make sure to select the right shader
     //          - simple.vert, basic vertex shader
     //          - mirror.vert, vertex shader which mirror the object both respect the x and y-axis
+    //			- transformation, vertex shader which allow to move the camera applying the transformation
     //          - simple.frag, basic fragment shader
     //          - texture.frag, fragment shader which add a checkerboard texture on the object
     //          - changeColorInTime, fragment shader which change the color of the object during the time
-    shader.makeBasicShader("../gloom/shaders/identity.vert", "../gloom/shaders/simple.frag");
+    shader.makeBasicShader("../gloom/shaders/transformation.vert", "../gloom/shaders/simple.frag");
     
     // Activate the two shaders
     shader.activate();
@@ -46,13 +47,13 @@ void runProgram(GLFWwindow* window){
 
     // Uncomment one of this to draw the corresponding object
 
-    //drawFiveTriangles(window);
-    //drawSingleTriangle(window);
-    //drawCircle(window, 0.0, 0.0, 0.5);
-    //drawSpiral(window, 0.0, 0.0, 0.5, 5);
-    //drawChangingColorInTime(window, uniformLocation); //make sure to select the correct shader at line 29 --> changeColorInTime
-    //drawTrheeOverlappingTriangle(window);
-    drawTransformation(window, uniformMatrixLocation);
+    //drawFiveTriangles(window); 										//shaders: simple.vert and simple.frag
+    //drawSingleTriangle(window); 										//shaders: simple.vert and simple.frag
+    //drawCircle(window, 0.0, 0.0, 0.5); 								//shaders: simple.vert and simple.frag
+    //drawSpiral(window, 0.0, 0.0, 0.5, 5); 							//shaders: simple.vert and simple.frag
+    //drawChangingColorInTime(window, uniformLocation); 				//shaders: simple.vert and changeColorInTime.frag
+    //drawTrheeOverlappingTriangle(window); 							//shaders: simple.vert and simple.frag
+    drawTransformation(window, uniformMatrixLocation); 				//shaders: transfromation.vert and simple.frag
 
 }
 
@@ -101,16 +102,6 @@ void draw(GLFWwindow* window, unsigned int vaoID, int number_of_vertices, int mo
         glfwSwapBuffers(window);
     }
 
-}
-
-
-void handleKeyboardInput(GLFWwindow* window)
-{
-    // Use escape key for terminating the GLFW window
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
 }
 
 unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension){
@@ -194,34 +185,26 @@ void drawFiveTriangles(GLFWwindow* window){
 
     //5 triangles coordinates to be changed if you want to draw differents triangles.
     float coordinates[] = {
-        -0.5, 0.5, 0.0,
-        -0.5, -0.5, 0.0,
-        0.3, 0.0, 0.0,
-        -0.5f, 0.7f, -0.3f,
-       	0.0f, -0.3f, -0.3f,
-        0.5f, 0.7f, -0.3f,
-        0.5f, 0.5f, -0.6f,
-        -0.3f, 0.0f, -0.6f,
-        0.5f, -0.5f, -0.6f,
+        1.0, 0.0, 0.0,
+        0.6, 0.6, 0.0,
+        0.0, 0.6, 0.0,
+        -0.6f, 0.6f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        -0.6f, -0.6f, 0.0f,
+        0.0f, -0.6f, 0.0f,
+        0.6f, -0.6f, 0.0f,
+        0.3f, 0.0f, 0.0f,
+        0.0f, 0.3f, 0.0f,
+        -0.3f, 0.0f, 0.0f,
     };
 
     //index buffer to draw 5 triangles
-    int index[] = {0,1,2,3,4,5,6,7,8};
+    int index[] = {0,1,2,2,3,4,4,5,6,6,7,0,8,9,10};
 
-    float RGBAcolor[] = {0.5, 1.0, 0.0, 0.3,
-    					0.5, 1.0, 0.0, 0.3,
-    					0.5, 1.0, 0.0, 0.3,
-    					0.5, 0.5, 1.0, 0.5,
-    					0.5, 0.5, 1.0, 0.5,
-    					0.5, 0.5, 1.0, 0.5,
-    					1.0, 0.5, 0.5, 0.8,
-    					1.0, 0.5, 0.5, 0.8,
-    					1.0, 0.5, 0.5, 0.8};
-
-    int number_of_triangles = 3;
+    int number_of_triangles = 5;
 
     // Set up the Vertex Array Objects to draw 5 triangles
-   	unsigned int vaoID = setUpVAOWithColor(coordinates, index, sizeof(coordinates), sizeof(index), 3, RGBAcolor, sizeof(RGBAcolor));
+    unsigned int vaoID = setUpVAO(coordinates, index, sizeof(coordinates), sizeof(index), 3);
 
     // Effective draw of the 5 triangles
     draw(window, vaoID, number_of_triangles * 3, 0);
@@ -360,71 +343,201 @@ void drawChangingColorInTime(GLFWwindow* window, int uniformLocation){
 
 }
 
-void drawTransformation(GLFWwindow* window, int uniformLocation){
-
-	float coordinates[] = {
-        -1.0, -0.8, 0.0,
-        1.0, -0.2, 0.0,
-        0.0, 0.4, 0.0,
+void drawTrheeOverlappingTriangle(GLFWwindow* window){
+	//3 triangles coordinates to be changed if you want to draw differents triangles.
+    float coordinates[] = {
+        -0.5, 0.5, 0.0,
+        -0.5, -0.5, 0.0,
+        0.3, 0.0, 0.0,
+        -0.5f, 0.7f, -0.3f,
+       	0.0f, -0.3f, -0.3f,
+        0.5f, 0.7f, -0.3f,
+        0.5f, 0.5f, -0.6f,
+        -0.3f, 0.0f, -0.6f,
+        0.5f, -0.5f, -0.6f,
     };
 
-    int index[] = {0,1,2};
+    //index buffer to draw 3 triangles
+    int index[] = {0,1,2,3,4,5,6,7,8};
 
-    float RGBAcolor[] = {1.0, 0.5, 0.5, 0.5,
-    					0.5, 0.5, 1.0, 0.3,
-    					0.5, 1.0, 0.5, 0.8};
+    float RGBAcolor[] = {0.5, 1.0, 0.0, 0.3,
+    					0.5, 1.0, 0.0, 0.3,
+    					0.5, 1.0, 0.0, 0.3,
+    					0.5, 0.5, 1.0, 0.5,
+    					0.5, 0.5, 1.0, 0.5,
+    					0.5, 0.5, 1.0, 0.5,
+    					1.0, 0.5, 0.5, 0.8,
+    					1.0, 0.5, 0.5, 0.8,
+    					1.0, 0.5, 0.5, 0.8};
 
-    unsigned int vaoID = setUpVAOWithColor(coordinates, index, sizeof(coordinates), sizeof(index), 3, RGBAcolor, sizeof(RGBAcolor));
+    int number_of_triangles = 3;
+
+    // Set up the Vertex Array Objects to draw 3 triangles
+   	unsigned int vaoID = setUpVAOWithColor(coordinates, index, sizeof(coordinates), sizeof(index), 3, RGBAcolor, sizeof(RGBAcolor));
+
+    // Effective draw of the 3 triangles
+    draw(window, vaoID, number_of_triangles * 3, 0);
+}
+
+void drawTransformation(GLFWwindow* window, int uniformLocation){
+
+	 //3 triangles coordinates to be changed if you want to draw differents triangles.
+    float coordinates[] = {
+        -0.5, 0.5, -1.0,
+        -0.5, -0.5, -1.0,
+        0.3, 0.0, -1.0,
+        -0.5f, 0.7f, -1.2f,
+       	0.0f, -0.3f, -1.2f,
+        0.5f, 0.7f, -1.2f,
+        0.5f, 0.5f, -1.4f,
+        -0.3f, 0.0f, -1.4f,
+        0.5f, -0.5f, -1.4f,
+    };
+
+    //index buffer to draw 3 triangles
+    int index[] = {6,7,8,3,4,5,0,1,2};
+
+    float RGBAcolor[] = {0.5, 1.0, 0.0, 1.0,
+    					0.5, 1.0, 0.0, 1.0,
+    					0.5, 1.0, 0.0, 1.0,
+    					0.5, 0.5, 1.0, 1.0,
+    					0.5, 0.5, 1.0, 1.0,
+    					0.5, 0.5, 1.0, 1.0,
+    					1.0, 0.5, 0.5, 1.0,
+    					1.0, 0.5, 0.5, 1.0,
+    					1.0, 0.5, 0.5, 1.0};
+
+    int number_of_triangles = 3;
+
+    // Set up the Vertex Array Objects to draw 3 triangles
+   	unsigned int vaoID = setUpVAOWithColor(coordinates, index, sizeof(coordinates), sizeof(index), 3, RGBAcolor, sizeof(RGBAcolor));
     
-    float i = 0.0f;
-    short isOpposite = 0;
+    // float i = 0.0f;
+    // short isOpposite = 0;
+
+    // x, y, z, x angle, y angle;
+    float motion[7] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+  
 
     while (!glfwWindowShouldClose(window))
     {
         // Clear colour and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Draw your scene here
         
         // Bind the current Vertex Array Object
         glBindVertexArray(vaoID);
     
         // Draw the current Vertex Array Object using mode GL_TRIANGLES
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, number_of_triangles * 3, GL_UNSIGNED_INT, 0);
+
+        // Build the matrix that we need
+        glm::mat4x4 matrix = glm::mat4();
+        glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f , float(windowHeight/windowWidth), 1.0f, 100.0f);
+        glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
+        glm::mat4x4 TMatrix = glm::translate(matrix, TVector);
+        glm::mat4x4 RXMatrix = glm::rotate(matrix, motion[3], glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4x4 RYMatrix = glm::rotate(matrix, motion[4], glm::vec3(0.0f, 1.0f, 0.0f));
+      
+        // Compute the final matrix
+        matrix = matrixPerspective * RXMatrix * RYMatrix * TMatrix;
         
-        glm::mat4x4 matrixPerspective = glm::perspective(45.0f , 1.0f, 1.0f, 100.0f);
+        // float matrix[] = 
+        // {
+        // 	1.0, 0.0, 0.0, 0.0,
+        // 	0.0, 1.0, 0.0, 0.0,
+        // 	0.0, 0.0, 1.0, 0.0,
+        // 	0.0, 0.0, 0.0, 1.0
+        // };
+
+        // if (i >= 0.5f){
+        // 	isOpposite = 1;
+        // };
+
+        // if (i < 0.0f){
+        // 	isOpposite = 0;
+        // }
+
+        // if(isOpposite){
+        // 	i = i - 0.01f;
+        // } else {
+        // 	i = i + 0.01f;
+        // }
 
 
-        float matrix[] = 
-        {
-        	i, 0.0, 0.0, 0.0,
-        	0.0, i, 0.0, 0.0,
-        	0.0, 0.0, 1.0, 0.0,
-        	0.0, 0.0, 0.0, 1.0
-        };
-
-        if (i >= 0.5f){
-        	isOpposite = 1;
-        };
-
-        if (i < 0.0f){
-        	isOpposite = 0;
-        }
-
-        if(isOpposite){
-        	i = i - 0.01f;
-        } else {
-        	i = i + 0.01f;
-        }
-
-
-        glUniformMatrix4fv(uniformLocation, 1,0, glm::value_ptr(matrixPerspective));
+        glUniformMatrix4fv(uniformLocation, 1,0, glm::value_ptr(matrix));
 
         // Handle other events
         glfwPollEvents();
-        handleKeyboardInput(window);
+        handleKeyboardInputMotion(window, motion);
 
         // Flip buffers
         glfwSwapBuffers(window);
+    }
+}
+
+void handleKeyboardInputMotion(GLFWwindow* window, float* motion)
+{
+	// Use escape key for terminating the GLFW window
+	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
+
+	//right
+	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+		motion[0] = motion[0] - 0.01;
+	}
+
+	//left
+	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+		motion[0] = motion[0] + 0.01;
+	}
+
+	// Up
+	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+		motion[1] = motion[1] - 0.01;
+	}
+
+	// Down
+	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+		motion[1] = motion[1] + 0.01;
+	}
+
+	// Forward
+	if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+		motion[2] = motion[2] + 0.01;
+	}
+
+	// Backward
+	if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+		motion[2] = motion[2] - 0.01;
+	}
+
+	// Rotate up
+	if(glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS){
+		motion[3] = motion[3] - 0.01f;
+	}
+
+	// Rotate down
+	if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
+		motion[3] = motion[3] + 0.01f;
+	}
+
+	// Rotate right
+	if(glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS){
+		motion[4] = motion[4] + 0.01f;
+	}
+
+	// Rotate left
+	if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS){
+		motion[4] = motion[4] - 0.01f;
+	}
+}
+
+void handleKeyboardInput(GLFWwindow* window)
+{
+    // Use escape key for terminating the GLFW window
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
     }
 }

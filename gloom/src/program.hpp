@@ -29,10 +29,14 @@ void drawSpiral(GLFWwindow* window, float cx, float cy, float r, int times);
 
 void drawChangingColorInTime(GLFWwindow* window, int uniformLocation);
 
+void drawTrheeOverlappingTriangle(GLFWwindow* window);
+
 void drawTransformation(GLFWwindow* window, int uniformLocation);
 
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
+
+void handleKeyboardInputMotion(GLFWwindow* window, float* motion);
 
 
 // Checks for whether an OpenGL error occurred. If one did,
