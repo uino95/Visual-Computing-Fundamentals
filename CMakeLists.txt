@@ -42,8 +42,10 @@ include_directories (gloom/src/
 #
 file (GLOB         VENDORS_SOURCES gloom/vendor/glad/src/glad.c)
 file (GLOB_RECURSE PROJECT_HEADERS gloom/src/*.hpp
-                                   gloom/src/*.h)
-file (GLOB_RECURSE PROJECT_SOURCES gloom/src/*.cpp
+                                   gloom/src/*.h
+                                   gloom/handout/sourceFiles/*.hpp)
+file (GLOB_RECURSE PROJECT_SOURCES gloom/handout/sourceFiles/*.cpp 
+                                   gloom/src/*.cpp
                                    gloom/src/*.cxx
                                    gloom/src/*.cc
                                    gloom/src/*.c)

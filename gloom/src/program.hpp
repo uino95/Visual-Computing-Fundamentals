@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <string>
-
+#include "../handout/sourceFiles/OBJLoader.hpp"
 
 // Main OpenGL program
 void runProgram(GLFWwindow* window);
@@ -16,6 +16,7 @@ unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, in
 
 unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension, float* RGBAcolor, int colorCount);
 
+unsigned int setUpVAOWithColorFloat4(std::vector<float4> vertices, unsigned int* index, int cCount, int iCount, int number_of_dimension, std::vector<float4> colors, int colorCount);
 // Implementatio of the effective draw
 void draw(GLFWwindow* window, unsigned int vaoID, int number_of_triangles, int drawing_mode);
 

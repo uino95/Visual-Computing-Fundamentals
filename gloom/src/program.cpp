@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "../handout/sourceFiles/OBJLoader.hpp"
 
+
 void runProgram(GLFWwindow* window){
     // Enable depth (Z) buffer (accept "closest" fragment)
     glEnable(GL_DEPTH_TEST);
@@ -29,24 +30,24 @@ void runProgram(GLFWwindow* window){
     // Load the two shader
     Gloom::Shader shader;
 
-    // Compile and link the two shader
-    // make sure to select the right shader
-    //          - simple.vert, basic vertex shader
-    //          - mirror.vert, vertex shader which mirror the object both respect the x and y-axis
-    //			- transformation, vertex shader which allow to move the camera applying the transformation
-    //          - simple.frag, basic fragment shader
-    //          - texture.frag, fragment shader which add a checkerboard texture on the object
-    //          - changeColorInTime, fragment shader which change the color of the object during the time
+    // // Compile and link the two shader
+    // // make sure to select the right shader
+    // //          - simple.vert, basic vertex shader
+    // //          - mirror.vert, vertex shader which mirror the object both respect the x and y-axis
+    // //			- transformation, vertex shader which allow to move the camera applying the transformation
+    // //          - simple.frag, basic fragment shader
+    // //          - texture.frag, fragment shader which add a checkerboard texture on the object
+    // //          - changeColorInTime, fragment shader which change the color of the object during the time
     shader.makeBasicShader("../gloom/shaders/simple.vert", "../gloom/shaders/simple.frag");
     
-    // Activate the two shaders
+    // // Activate the two shaders
     shader.activate();
 
-    // get the location of the uniform variable (I've to do like this because glsl version 330 doesn't support direct use of layout(location = 0)))
-    int uniformLocation = glGetUniformLocation(shader.get(), "colorTimeOut");
-    int uniformMatrixLocation = glGetUniformLocation(shader.get(), "transformMatrix");
+    // // get the location of the uniform variable (I've to do like this because glsl version 330 doesn't support direct use of layout(location = 0)))
+    // int uniformLocation = glGetUniformLocation(shader.get(), "colorTimeOut");
+    // int uniformMatrixLocation = glGetUniformLocation(shader.get(), "transformMatrix");
 
-    // Uncomment one of this to draw the corresponding object
+    // // Uncomment one of this to draw the corresponding object
 
     //drawFiveTriangles(window); 										//shaders: simple.vert and simple.frag
     //drawSingleTriangle(window); 										//shaders: simple.vert and simple.frag
@@ -140,7 +141,51 @@ unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, in
     return vaoID;
 }
 
-unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCount, int iCount, int number_of_dimension, std::vector<float4> colors, int colorCount){
+unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension, float* RGBAcolor, int colorCount){
+
+    // Allocate space in memory for the VAO, VBO and the index buffer
+    unsigned int vaoID = 0;
+    unsigned int coordinatesID = 0;
+    unsigned int colorID = 0;
+    unsigned int indexID = 0;
+
+    // Generate and bind the vertex array object
+    glGenVertexArrays(1, &vaoID);
+    glBindVertexArray(vaoID);
+
+    // Generate and bind the Vertex Buffer Object for coordinates
+    glGenBuffers(1, &coordinatesID);
+    glBindBuffer(GL_ARRAY_BUFFER, coordinatesID);
+    // Fill the buffer with the actual data
+    glBufferData(GL_ARRAY_BUFFER, cCount, coordinates, GL_STATIC_DRAW);
+
+    int attributeIndex = 0;
+    // Fill the table of the VAO
+    glVertexAttribPointer(attributeIndex, number_of_dimension, GL_FLOAT, GL_FALSE, 0, 0);
+    // Enable the VAO
+    glEnableVertexAttribArray(attributeIndex);
+
+    // Generate and bind the Vertex Buffer Object for colors
+    glGenBuffers(1, &colorID);
+    glBindBuffer(GL_ARRAY_BUFFER, colorID);
+    // Fill the buffer with the actual data
+    glBufferData(GL_ARRAY_BUFFER, colorCount, RGBAcolor, GL_STATIC_DRAW);
+    
+    // Fill the table of the VAO
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    // Generate and bind the index buffer
+    glGenBuffers(1, &indexID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexID);
+    // Fill the buffer with the actual data;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iCount, index, GL_STATIC_DRAW);
+
+    // Return the Vao ID, in order to let the program designing it later 
+    return vaoID;
+}
+
+unsigned int setUpVAOWithColorFloat4(std::vector<float4> vertices, unsigned int* index, int cCount, int iCount, int number_of_dimension, std::vector<float4> colors, int colorCount){
 
     // Allocate space in memory for the VAO, VBO and the index buffer
     unsigned int vaoID = 0;
@@ -157,15 +202,16 @@ unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCo
     glBindBuffer(GL_ARRAY_BUFFER, coordinatesID);
     
     std::vector<float> coordinates;
-    for (int i = 0; i < steve.leftLeg.vertices.size(); ++i)
+    for (unsigned int i = 0; i < vertices.size(); ++i)
     {
-        coordinates.push_back(vertices.at(i).x);
-        coordinates.push_back(vertices.at(i).y);
-        coordinates.push_back(vertices.at(i).z);
+        coordinates.push_back(vertices.at(i).x/32);
+        coordinates.push_back(vertices.at(i).y/32);
+        coordinates.push_back(vertices.at(i).z/32);
         coordinates.push_back(vertices.at(i).w);
     }
+
     // Fill the buffer with the actual data
-    glBufferData(GL_ARRAY_BUFFER, cCount, coordinates, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, cCount * sizeof(float), &coordinates[0], GL_STATIC_DRAW);
 
     int attributeIndex = 0;
     // Fill the table of the VAO
@@ -178,7 +224,7 @@ unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCo
     glBindBuffer(GL_ARRAY_BUFFER, colorID);
 
     std::vector<float> RGBAcolor;
-    for (int i = 0; i < steve.leftLeg.vertices.size(); ++i)
+    for (unsigned int i = 0; i < colors.size(); ++i)
     {
         RGBAcolor.push_back(colors.at(i).x);
         RGBAcolor.push_back(colors.at(i).y);
@@ -186,7 +232,7 @@ unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCo
         RGBAcolor.push_back(colors.at(i).w);
     }    
     // Fill the buffer with the actual data
-    glBufferData(GL_ARRAY_BUFFER, colorCount, RGBAcolor, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, colorCount * sizeof(float), &RGBAcolor[0], GL_STATIC_DRAW);
     // Fill the table of the VAO
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
@@ -195,7 +241,7 @@ unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCo
     glGenBuffers(1, &indexID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexID);
     // Fill the buffer with the actual data;
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iCount, index, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iCount * sizeof(unsigned int), index, GL_STATIC_DRAW);
 
     // Return the Vao ID, in order to let the program designing it later 
     return vaoID;
@@ -622,14 +668,14 @@ void handleKeyboardInput(GLFWwindow* window)
 void drawSteve(GLFWwindow* window){
 
      // Load the minecraft object TODO ask where is the correct place for handout
-    MinecraftCharacter steve = loadMinecraftCharacterModel("../handout/res/steve.obj"); 
+    MinecraftCharacter steve = loadMinecraftCharacterModel("../gloom/handout/res/steve.obj");
 
-    unsigned int vaoID1 = setUpVAOWithColor(steve.leftLeg.vertices, &steve.leftLeg.indices[0], sizeof(steve.leftLeg.vertices), sizeof(steve.leftLeg.indices), 4, steve.leftLeg.colours, sizeof(steve.leftLeg.colours));
-    unsigned int vaoID2 = setUpVAOWithColor(steve.leftArm.vertices, &steve.leftArm.indices[0], sizeof(steve.leftArm.vertices), sizeof(steve.leftArm.indices), 4, steve.leftArm.colours, sizeof(steve.leftArm.colours));
-    unsigned int vaoID3 = setUpVAOWithColor(steve.rightLeg.vertices, &steve.rightLeg.indices[0], sizeof(steve.rightLeg.vertices), sizeof(steve.rightLeg.indices), 4, steve.rightLeg.colours, sizeof(steve.rightLeg.colours));
-    unsigned int vaoID4 = setUpVAOWithColor(steve.rightArm.vertices, &steve.rightArm.indices[0], sizeof(steve.rightArm.vertices), sizeof(steve.rightArm.indices), 4, steve.rightArm.colours, sizeof(steve.rightArm.colours));
-    unsigned int vaoID5 = setUpVAOWithColor(steve.torso.vertices, &steve.torso.indices[0], sizeof(steve.torso.vertices), sizeof(steve.torso.indices), 4, steve.torso.colours, sizeof(steve.torso.colours));
-    unsigned int vaoID6 = setUpVAOWithColor(steve.head.vertices, &steve.head.indices[0], sizeof(steve.head.vertices), sizeof(steve.head.indices), 4, steve.head.colours, sizeof(steve.head.colours));
+    unsigned int vaoID1 = setUpVAOWithColorFloat4(steve.leftLeg.vertices, &steve.leftLeg.indices[0], steve.leftLeg.vertices.size()*4, steve.leftLeg.indices.size(), 4, steve.leftLeg.colours, steve.leftLeg.colours.size()*4);
+    unsigned int vaoID2 = setUpVAOWithColorFloat4(steve.leftArm.vertices, &steve.leftArm.indices[0], steve.leftArm.vertices.size(), steve.leftArm.indices.size(), 4, steve.leftArm.colours, steve.leftArm.colours.size());
+    unsigned int vaoID3 = setUpVAOWithColorFloat4(steve.rightLeg.vertices, &steve.rightLeg.indices[0], steve.rightLeg.vertices.size(), steve.rightLeg.indices.size(), 4, steve.rightLeg.colours, steve.rightLeg.colours.size());
+    unsigned int vaoID4 = setUpVAOWithColorFloat4(steve.rightArm.vertices, &steve.rightArm.indices[0], steve.rightArm.vertices.size(), steve.rightArm.indices.size(), 4, steve.rightArm.colours, steve.rightArm.colours.size());
+    unsigned int vaoID5 = setUpVAOWithColorFloat4(steve.torso.vertices, &steve.torso.indices[0], steve.torso.vertices.size(), steve.torso.indices.size(), 4, steve.torso.colours, steve.torso.colours.size());
+    unsigned int vaoID6 = setUpVAOWithColorFloat4(steve.head.vertices, &steve.head.indices[0], steve.head.vertices.size(), steve.head.indices.size(), 4, steve.head.colours, steve.head.colours.size());    
 
     while (!glfwWindowShouldClose(window))
     {
@@ -639,7 +685,7 @@ void drawSteve(GLFWwindow* window){
         // Bind the current Vertex Array Object
         glBindVertexArray(vaoID1);
         // Draw the current Vertex Array Object using mode GL_TRIANGLES
-        glDrawElements(GL_TRIANGLES, steve.leftLeg.vertices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, steve.leftLeg.vertices.size()*4, GL_UNSIGNED_INT, 0);
 
         glBindVertexArray(vaoID2);
         glDrawElements(GL_TRIANGLES, steve.leftArm.vertices.size(), GL_UNSIGNED_INT, 0);
