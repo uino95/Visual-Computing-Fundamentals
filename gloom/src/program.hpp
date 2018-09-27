@@ -35,6 +35,8 @@ void drawTransformation(GLFWwindow* window, int uniformLocation);
 
 void camera(GLFWwindow* window, int uniformLocation);
 
+void drawSteve(GLFWwindow* window);
+
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
 

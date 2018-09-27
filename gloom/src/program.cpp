@@ -55,8 +55,8 @@ void runProgram(GLFWwindow* window){
     //drawChangingColorInTime(window, uniformLocation); 				//shaders: simple.vert and changeColorInTime.frag
     //drawTrheeOverlappingTriangle(window); 							//shaders: simple.vert and simple.frag
     //drawTransformation(window, uniformMatrixLocation); 				//shaders: transfromation.vert and simple.frag
-    camera(window, uniformMatrixLocation);                          //shaders: transfromation.vert and simple.frag
-    //drawSteve(window);
+    //camera(window, uniformMatrixLocation);                          //shaders: transfromation.vert and simple.frag
+    drawSteve(window);
 }
 
 void draw(GLFWwindow* window, unsigned int vaoID, int number_of_vertices, int mode){
@@ -140,7 +140,7 @@ unsigned int setUpVAO(float* coordinates, int* index, int cCount, int iCount, in
     return vaoID;
 }
 
-unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int iCount, int number_of_dimension, float* RGBAcolor, int colorCount){
+unsigned int setUpVAOWithColor(std::vector<float4> vertices, int* index, int cCount, int iCount, int number_of_dimension, std::vector<float4> colors, int colorCount){
 
     // Allocate space in memory for the VAO, VBO and the index buffer
     unsigned int vaoID = 0;
@@ -155,6 +155,15 @@ unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int i
     // Generate and bind the Vertex Buffer Object for coordinates
     glGenBuffers(1, &coordinatesID);
     glBindBuffer(GL_ARRAY_BUFFER, coordinatesID);
+    
+    std::vector<float> coordinates;
+    for (int i = 0; i < steve.leftLeg.vertices.size(); ++i)
+    {
+        coordinates.push_back(vertices.at(i).x);
+        coordinates.push_back(vertices.at(i).y);
+        coordinates.push_back(vertices.at(i).z);
+        coordinates.push_back(vertices.at(i).w);
+    }
     // Fill the buffer with the actual data
     glBufferData(GL_ARRAY_BUFFER, cCount, coordinates, GL_STATIC_DRAW);
 
@@ -167,6 +176,15 @@ unsigned int setUpVAOWithColor(float* coordinates, int* index, int cCount, int i
     // Generate and bind the Vertex Buffer Object for colors
     glGenBuffers(1, &colorID);
     glBindBuffer(GL_ARRAY_BUFFER, colorID);
+
+    std::vector<float> RGBAcolor;
+    for (int i = 0; i < steve.leftLeg.vertices.size(); ++i)
+    {
+        RGBAcolor.push_back(colors.at(i).x);
+        RGBAcolor.push_back(colors.at(i).y);
+        RGBAcolor.push_back(colors.at(i).z);
+        RGBAcolor.push_back(colors.at(i).w);
+    }    
     // Fill the buffer with the actual data
     glBufferData(GL_ARRAY_BUFFER, colorCount, RGBAcolor, GL_STATIC_DRAW);
     // Fill the table of the VAO
@@ -606,9 +624,45 @@ void drawSteve(GLFWwindow* window){
      // Load the minecraft object TODO ask where is the correct place for handout
     MinecraftCharacter steve = loadMinecraftCharacterModel("../handout/res/steve.obj"); 
 
-    unsigned int vaoID = setUpVAOWithColor(&steve.leftLeg.vertices[0], &steve.leftLeg.indices[0], sizeof(steve.leftLeg.vertices), sizeof(steve.leftLeg.indices), 3, steve.leftLeg.colours, sizeof(steve.leftLeg.colours));
+    unsigned int vaoID1 = setUpVAOWithColor(steve.leftLeg.vertices, &steve.leftLeg.indices[0], sizeof(steve.leftLeg.vertices), sizeof(steve.leftLeg.indices), 4, steve.leftLeg.colours, sizeof(steve.leftLeg.colours));
+    unsigned int vaoID2 = setUpVAOWithColor(steve.leftArm.vertices, &steve.leftArm.indices[0], sizeof(steve.leftArm.vertices), sizeof(steve.leftArm.indices), 4, steve.leftArm.colours, sizeof(steve.leftArm.colours));
+    unsigned int vaoID3 = setUpVAOWithColor(steve.rightLeg.vertices, &steve.rightLeg.indices[0], sizeof(steve.rightLeg.vertices), sizeof(steve.rightLeg.indices), 4, steve.rightLeg.colours, sizeof(steve.rightLeg.colours));
+    unsigned int vaoID4 = setUpVAOWithColor(steve.rightArm.vertices, &steve.rightArm.indices[0], sizeof(steve.rightArm.vertices), sizeof(steve.rightArm.indices), 4, steve.rightArm.colours, sizeof(steve.rightArm.colours));
+    unsigned int vaoID5 = setUpVAOWithColor(steve.torso.vertices, &steve.torso.indices[0], sizeof(steve.torso.vertices), sizeof(steve.torso.indices), 4, steve.torso.colours, sizeof(steve.torso.colours));
+    unsigned int vaoID6 = setUpVAOWithColor(steve.head.vertices, &steve.head.indices[0], sizeof(steve.head.vertices), sizeof(steve.head.indices), 4, steve.head.colours, sizeof(steve.head.colours));
 
-    draw(window, vaoID, steve.leftLeg.vertices.size(), 0);    
+    while (!glfwWindowShouldClose(window))
+    {
+        // Clear colour and depth buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Bind the current Vertex Array Object
+        glBindVertexArray(vaoID1);
+        // Draw the current Vertex Array Object using mode GL_TRIANGLES
+        glDrawElements(GL_TRIANGLES, steve.leftLeg.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(vaoID2);
+        glDrawElements(GL_TRIANGLES, steve.leftArm.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(vaoID3);
+        glDrawElements(GL_TRIANGLES, steve.rightLeg.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(vaoID4);
+        glDrawElements(GL_TRIANGLES, steve.rightArm.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(vaoID5);
+        glDrawElements(GL_TRIANGLES, steve.torso.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(vaoID6);
+        glDrawElements(GL_TRIANGLES, steve.head.vertices.size(), GL_UNSIGNED_INT, 0);
+
+        // Handle other events
+        glfwPollEvents();
+        handleKeyboardInput(window);
+
+        // Flip buffers
+        glfwSwapBuffers(window);
+    }
 }
 
 
