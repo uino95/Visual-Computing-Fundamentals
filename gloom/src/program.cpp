@@ -9,6 +9,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../handout/sourceFiles/OBJLoader.hpp"
 
 void runProgram(GLFWwindow* window){
     // Enable depth (Z) buffer (accept "closest" fragment)
@@ -36,7 +37,7 @@ void runProgram(GLFWwindow* window){
     //          - simple.frag, basic fragment shader
     //          - texture.frag, fragment shader which add a checkerboard texture on the object
     //          - changeColorInTime, fragment shader which change the color of the object during the time
-    shader.makeBasicShader("../gloom/shaders/transformation.vert", "../gloom/shaders/simple.frag");
+    shader.makeBasicShader("../gloom/shaders/simple.vert", "../gloom/shaders/simple.frag");
     
     // Activate the two shaders
     shader.activate();
@@ -53,8 +54,9 @@ void runProgram(GLFWwindow* window){
     //drawSpiral(window, 0.0, 0.0, 0.5, 5); 							//shaders: simple.vert and simple.frag
     //drawChangingColorInTime(window, uniformLocation); 				//shaders: simple.vert and changeColorInTime.frag
     //drawTrheeOverlappingTriangle(window); 							//shaders: simple.vert and simple.frag
-    drawTransformation(window, uniformMatrixLocation); 				//shaders: transfromation.vert and simple.frag
-
+    //drawTransformation(window, uniformMatrixLocation); 				//shaders: transfromation.vert and simple.frag
+    camera(window, uniformMatrixLocation);                          //shaders: transfromation.vert and simple.frag
+    //drawSteve(window);
 }
 
 void draw(GLFWwindow* window, unsigned int vaoID, int number_of_vertices, int mode){
@@ -380,6 +382,87 @@ void drawTrheeOverlappingTriangle(GLFWwindow* window){
 }
 
 void drawTransformation(GLFWwindow* window, int uniformLocation){
+     //3 triangles coordinates to be changed if you want to draw differents triangles.
+    float coordinates[] = {
+        -0.5, 0.5, 0.0,
+        -0.5, -0.5, 0.0,
+        0.3, 0.0, 0.0,
+        -0.5f, 0.7f, -0.2f,
+        0.0f, -0.3f, -0.2f,
+        0.5f, 0.7f, -0.2f,
+        0.5f, 0.5f, -0.4f,
+        -0.3f, 0.0f, -0.4f,
+        0.5f, -0.5f, -0.4f,
+    };
+
+    //index buffer to draw 3 triangles
+    int index[] = {6,7,8,3,4,5,0,1,2};
+
+    float RGBAcolor[] = {0.5, 1.0, 0.0, 1.0,
+                        0.5, 1.0, 0.0, 1.0,
+                        0.5, 1.0, 0.0, 1.0,
+                        0.5, 0.5, 1.0, 1.0,
+                        0.5, 0.5, 1.0, 1.0,
+                        0.5, 0.5, 1.0, 1.0,
+                        1.0, 0.5, 0.5, 1.0,
+                        1.0, 0.5, 0.5, 1.0,
+                        1.0, 0.5, 0.5, 1.0};
+
+    int number_of_triangles = 3;
+
+    // Set up the Vertex Array Objects to draw 3 triangles
+    unsigned int vaoID = setUpVAOWithColor(coordinates, index, sizeof(coordinates), sizeof(index), 3, RGBAcolor, sizeof(RGBAcolor));
+    
+    float i = 0.0f;
+    short isOpposite = 0;
+
+    while (!glfwWindowShouldClose(window))
+    {
+        // Clear colour and depth buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // Bind the current Vertex Array Object
+        glBindVertexArray(vaoID);
+    
+        // Draw the current Vertex Array Object using mode GL_TRIANGLES
+        glDrawElements(GL_TRIANGLES, number_of_triangles * 3, GL_UNSIGNED_INT, 0);
+
+        // matrix is column major
+        float matrix[] = 
+        {
+         1.0, i, 0.0, 0.0,
+         0.0, 1.0, 0.0, 0.0,
+         0.0, 0.0, 1.0, 0.0,
+         0.0, 0.0, 0.0, 1.0
+        };
+
+        if (i >= 0.5f){
+         isOpposite = 1;
+        };
+
+        if (i < 0.0f){
+         isOpposite = 0;
+        }
+
+        if(isOpposite){
+         i = i - 0.01f;
+        } else {
+         i = i + 0.01f;
+        }
+
+        // Modify the uniform value
+        glUniformMatrix4fv(uniformLocation, 1,0, matrix);
+
+        // Handle other events
+        glfwPollEvents();
+        handleKeyboardInput(window);
+
+        // Flip buffers
+        glfwSwapBuffers(window);
+    }
+}
+
+void camera(GLFWwindow* window, int uniformLocation){
 
 	 //3 triangles coordinates to be changed if you want to draw differents triangles.
     float coordinates[] = {
@@ -417,7 +500,6 @@ void drawTransformation(GLFWwindow* window, int uniformLocation){
 
     // x, y, z, x angle, y angle;
     float motion[7] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-  
 
     while (!glfwWindowShouldClose(window))
     {
@@ -440,29 +522,6 @@ void drawTransformation(GLFWwindow* window, int uniformLocation){
       
         // Compute the final matrix
         matrix = matrixPerspective * RXMatrix * RYMatrix * TMatrix;
-        
-        // float matrix[] = 
-        // {
-        // 	1.0, 0.0, 0.0, 0.0,
-        // 	0.0, 1.0, 0.0, 0.0,
-        // 	0.0, 0.0, 1.0, 0.0,
-        // 	0.0, 0.0, 0.0, 1.0
-        // };
-
-        // if (i >= 0.5f){
-        // 	isOpposite = 1;
-        // };
-
-        // if (i < 0.0f){
-        // 	isOpposite = 0;
-        // }
-
-        // if(isOpposite){
-        // 	i = i - 0.01f;
-        // } else {
-        // 	i = i + 0.01f;
-        // }
-
 
         glUniformMatrix4fv(uniformLocation, 1,0, glm::value_ptr(matrix));
 
@@ -541,3 +600,17 @@ void handleKeyboardInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 }
+
+void drawSteve(GLFWwindow* window){
+
+     // Load the minecraft object TODO ask where is the correct place for handout
+    MinecraftCharacter steve = loadMinecraftCharacterModel("../handout/res/steve.obj"); 
+
+    unsigned int vaoID = setUpVAOWithColor(&steve.leftLeg.vertices[0], &steve.leftLeg.indices[0], sizeof(steve.leftLeg.vertices), sizeof(steve.leftLeg.indices), 3, steve.leftLeg.colours, sizeof(steve.leftLeg.colours));
+
+    draw(window, vaoID, steve.leftLeg.vertices.size(), 0);    
+}
+
+
+
+

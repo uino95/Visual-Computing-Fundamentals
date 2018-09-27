@@ -33,6 +33,8 @@ void drawTrheeOverlappingTriangle(GLFWwindow* window);
 
 void drawTransformation(GLFWwindow* window, int uniformLocation);
 
+void camera(GLFWwindow* window, int uniformLocation);
+
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
 
