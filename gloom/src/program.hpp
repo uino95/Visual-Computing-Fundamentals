@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <string>
-#include "../handout/sourceFiles/OBJLoader.hpp"
+#include "floats.hpp"
 
 // Main OpenGL program
 void runProgram(GLFWwindow* window);

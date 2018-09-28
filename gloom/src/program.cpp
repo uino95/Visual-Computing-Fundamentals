@@ -9,7 +9,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../handout/sourceFiles/OBJLoader.hpp"
+#include "OBJLoader.hpp"
 
 
 void runProgram(GLFWwindow* window){
@@ -668,7 +668,7 @@ void handleKeyboardInput(GLFWwindow* window)
 void drawSteve(GLFWwindow* window){
 
      // Load the minecraft object TODO ask where is the correct place for handout
-    MinecraftCharacter steve = loadMinecraftCharacterModel("../gloom/handout/res/steve.obj");
+    MinecraftCharacter steve = loadMinecraftCharacterModel("../gloom/res/steve.obj");
 
     unsigned int vaoID1 = setUpVAOWithColorFloat4(steve.leftLeg.vertices, &steve.leftLeg.indices[0], steve.leftLeg.vertices.size()*4, steve.leftLeg.indices.size(), 4, steve.leftLeg.colours, steve.leftLeg.colours.size()*4);
     unsigned int vaoID2 = setUpVAOWithColorFloat4(steve.leftArm.vertices, &steve.leftArm.indices[0], steve.leftArm.vertices.size(), steve.leftArm.indices.size(), 4, steve.leftArm.colours, steve.leftArm.colours.size());
