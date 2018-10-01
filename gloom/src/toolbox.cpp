@@ -4,11 +4,12 @@
 #include "toolbox.hpp"
 
 Mesh generateChessboard(
-        unsigned int width,  // Width and height of the chessboard, measured in tiles
-        unsigned int height,
-        float tileWidth,     // Width and height of each tile, measured in units
-        float4 tileColour1,  // Colours of the chessboard tiles.
-        float4 tileColour2) {
+    unsigned int width,  // Width and height of the chessboard, measured in tiles
+    unsigned int height,
+    float tileWidth,     // Width and height of each tile, measured in units
+    float4 tileColour1,  // Colours of the chessboard tiles.
+    float4 tileColour2)
+{
     std::vector<float4> vertices;
     std::vector<float4> vertexColours;
     std::vector<unsigned int> indices;
@@ -19,8 +20,10 @@ Mesh generateChessboard(
     vertexColours.reserve(4 * tileCount);
     indices.reserve(6 * tileCount);
 
-    for(int x = 0; x < width; x++) {
-        for(int y = 0; y < height; y++) {
+    for(int x = 0; x < width; x++)
+    {
+        for(int y = 0; y < height; y++)
+        {
             float leftX = (float(x) - 0.5f) * tileWidth;
             float rightX = (float(x) + 0.5f) * tileWidth;
             float bottomZ = (float(y) - 0.5f) * tileWidth;
@@ -42,12 +45,15 @@ Mesh generateChessboard(
 
             bool tileColourType = ((x ^ y) & 1) == 1;
 
-            if(tileColourType) {
+            if(tileColourType)
+            {
                 vertexColours.push_back(tileColour1);
                 vertexColours.push_back(tileColour1);
                 vertexColours.push_back(tileColour1);
                 vertexColours.push_back(tileColour1);
-            } else {
+            }
+            else
+            {
                 vertexColours.push_back(tileColour2);
                 vertexColours.push_back(tileColour2);
                 vertexColours.push_back(tileColour2);
@@ -70,8 +76,10 @@ Mesh generateChessboard(
 // we keep track here with a global variable whether this has happened previously.
 bool isRandomInitialised = false;
 
-float randomUniformFloat() {
-    if (!isRandomInitialised) {
+float randomUniformFloat()
+{
+    if (!isRandomInitialised)
+    {
         // Initialise the random number generator using the current time as a seed
         srand(static_cast <unsigned> (time(0)));
         isRandomInitialised = true;
@@ -85,7 +93,8 @@ float randomUniformFloat() {
 static std::chrono::steady_clock::time_point _previousTimePoint = std::chrono::steady_clock::now();
 
 // Calculates the elapsed time since the previous time this function was called.
-double getTimeDeltaSeconds() {
+double getTimeDeltaSeconds()
+{
     // Determine the current time
     std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
 
@@ -101,13 +110,15 @@ double getTimeDeltaSeconds() {
     return timeDeltaSeconds;
 }
 
-float toRadians(float angleDegrees) {
+float toRadians(float angleDegrees)
+{
     return angleDegrees * (float(M_PI) / 180.0f);
 }
 
 // Reads a text file containing 2D integer coordinates in a specific format
 // and returns a vector with these coordinates.
-std::vector<int2> readCoordinatesFile(std::string filePath) {
+std::vector<int2> readCoordinatesFile(std::string filePath)
+{
     // Open input file
     std::ifstream inputFile(filePath);
     std::vector<int2> foundPoints;
@@ -139,16 +150,19 @@ std::vector<int2> readCoordinatesFile(std::string filePath) {
     return foundPoints;
 }
 
-Path::Path(std::string const &coordinatesFile) {
+Path::Path(std::string const &coordinatesFile)
+{
     waypoints = readCoordinatesFile(coordinatesFile);
 }
 
-float2 Path::getCurrentWaypoint(float tileWidth) {
+float2 Path::getCurrentWaypoint(float tileWidth)
+{
     int2 intWaypoint = waypoints.at(currentWaypoint);
     return float2(intWaypoint.x, intWaypoint.y) * tileWidth;
 }
 
-bool Path::hasWaypointBeenReached(float2 characterPosition, float tileWidth) {
+bool Path::hasWaypointBeenReached(float2 characterPosition, float tileWidth)
+{
     float2 currentWaypoint = getCurrentWaypoint(tileWidth);
 
     float dx = currentWaypoint.x - characterPosition.x;
@@ -160,7 +174,21 @@ bool Path::hasWaypointBeenReached(float2 characterPosition, float tileWidth) {
     return distanceToCurrentWaypoint < distanceThreshold;
 }
 
-void Path::advanceToNextWaypoint() {
+void Path::advanceToNextWaypoint()
+{
     currentWaypoint++;
     currentWaypoint = currentWaypoint % unsigned(waypoints.size());
+}
+
+float *toFloat(std::vector<float4> v)
+{
+    std::vector<float> c;
+    for (unsigned int i = 0; i < v.size(); ++i)
+    {
+        c.push_back(v.at(i).x/32);
+        c.push_back(v.at(i).y/32);
+        c.push_back(v.at(i).z/32);
+        c.push_back(v.at(i).w);
+    }
+    return &c[0];
 }

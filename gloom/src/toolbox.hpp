@@ -2,6 +2,8 @@
 
 #include <glm/mat4x4.hpp>
 #include "mesh.hpp"
+#include "floats.hpp"
+#include <vector>
 
 // Generates a mesh containing a 3D object which looks like a chessboard.
 Mesh generateChessboard(unsigned int width, unsigned int height, float tileWidth, float4 tileColour1, float4 tileColour2);
@@ -14,6 +16,9 @@ double getTimeDeltaSeconds();
 
 // Converts an angle measured in degrees to radians.
 float toRadians(float angleDegrees);
+
+// Converts a vector of float4 into a pointer to a float
+float* toFloat(std::vector<float4> v);
 
 // A helpful class which loads in a path text file when it's created.
 // Simplifies managing waypoints and checking whether the current one has been reached.

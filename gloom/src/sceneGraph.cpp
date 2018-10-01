@@ -53,12 +53,14 @@ void addChild(SceneNode* parent, SceneNode* child) {
 void printNode(SceneNode* node) {
 	printf(
 		"SceneNode {\n"
+		"    name: %s\n"
 		"    Child count: %i\n"
 		"    Rotation: (%f, %f, %f)\n"
 		"    Location: (%f, %f, %f)\n"
 		"    Reference point: (%f, %f, %f)\n"
 		"    VAO ID: %i\n"
 		"}\n",
+		node->name.c_str(),
 		int(node->children.size()),
 		node->rotation.x, node->rotation.y, node->rotation.z,
 		node->position.x, node->position.y, node->position.z,

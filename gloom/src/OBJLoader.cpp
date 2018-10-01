@@ -167,9 +167,22 @@ std::vector<Mesh> loadWavefront(std::string const srcFile, bool quiet)
 
 void colourFaces(Mesh &mesh) {
 	int sides = mesh.faceCount() / 2;
-
+	std::cout << "sides " << sides << std::endl;
 	// Allocate capacity
 	mesh.colours.resize(mesh.vertices.size(), 0);
+	float4 color1 = {1.0f,0.0f,0.0f,1.0f};
+	float4 color2 = {0.0f,1.0f,0.0f,1.0f};
+	float4 color3 = {0.0f,0.0f,1.0f,1.0f};
+	float4 color4 = {0.0f,0.0f,0.0f,1.0f};
+	float4 color5 = {1.0f,1.0f,1.0f,1.0f};
+	float4 color6 = {1.0f,1.0f,0.0f,1.0f};
+	std::vector<float4> colors;
+	colors.push_back(color1);
+	colors.push_back(color2);
+	colors.push_back(color3);
+	colors.push_back(color4);
+	colors.push_back(color5);
+	colors.push_back(color6);
 
 	for(int side = 0; side < sides; side++) {
 		float rand_red = randomUniformFloat();
@@ -178,12 +191,12 @@ void colourFaces(Mesh &mesh) {
 
 		float4 randomColour(rand_red, rand_green, rand_blue, 1.0);
 
-		mesh.colours.at(side * 6 + 0) = randomColour;
-		mesh.colours.at(side * 6 + 1) = randomColour;
-		mesh.colours.at(side * 6 + 2) = randomColour;
-		mesh.colours.at(side * 6 + 3) = randomColour;
-		mesh.colours.at(side * 6 + 4) = randomColour;
-		mesh.colours.at(side * 6 + 5) = randomColour;
+		mesh.colours.at(side * 6 + 0) = colors.at(side);
+		mesh.colours.at(side * 6 + 1) = colors.at(side);
+		mesh.colours.at(side * 6 + 2) = colors.at(side);
+		mesh.colours.at(side * 6 + 3) = colors.at(side);
+		mesh.colours.at(side * 6 + 4) = colors.at(side);
+		mesh.colours.at(side * 6 + 5) = colors.at(side);
 	}
 }
 

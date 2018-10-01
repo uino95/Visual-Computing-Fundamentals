@@ -8,6 +8,8 @@
 #include <glad/glad.h>
 #include <string>
 #include "floats.hpp"
+#include "SceneGraph.hpp"
+#include <glm/mat4x4.hpp>
 
 // Main OpenGL program
 void runProgram(GLFWwindow* window);
@@ -36,13 +38,24 @@ void drawTransformation(GLFWwindow* window, int uniformLocation);
 
 void camera(GLFWwindow* window, int uniformLocation);
 
-void drawSteve(GLFWwindow* window);
+void drawSteve(GLFWwindow* window, int uniformLocation);
+
+void cameraMovement(GLFWwindow *window, int uniformLocation, float* motion);
 
 // Function for handling keypresses
 void handleKeyboardInput(GLFWwindow* window);
 
 void handleKeyboardInputMotion(GLFWwindow* window, float* motion);
 
+void printScene(SceneNode* rootNode);
+
+SceneNode* constructSceneGraph();
+
+void drawChild(SceneNode * node);
+
+void drawScene(GLFWwindow *window, int uniformLocation);
+
+void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float* motion, int uniformLocation, float rotation, float2 movement);
 
 // Checks for whether an OpenGL error occurred. If one did,
 // it prints out the error type and ID
