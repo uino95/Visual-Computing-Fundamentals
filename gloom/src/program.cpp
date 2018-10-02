@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "OBJLoader.hpp"
 #include "toolbox.hpp"
+#include "sceneGraph.hpp"
 
 #define PI 3.14159265
 
@@ -47,7 +48,7 @@ void runProgram(GLFWwindow *window)
     shader.activate();
 
     // // get the location of the uniform variable (I've to do like this because glsl version 330 doesn't support direct use of layout(location = 0)))
-    int uniformLocation = glGetUniformLocation(shader.get(), "colorTimeOut");
+    //int uniformLocation = glGetUniformLocation(shader.get(), "colorTimeOut");
     int uniformMatrixLocation = glGetUniformLocation(shader.get(), "transformMatrix");
 
     // Uncomment one of this to draw the corresponding object
@@ -121,7 +122,6 @@ unsigned int setUpVAO(float *coordinates, int *index, int cCount, int iCount, in
     // Allocate space in memory for the VAO, VBO and the index buffer
     unsigned int vaoID = 0;
     unsigned int coordinatesID = 0;
-    unsigned int colorID = 0;
     unsigned int indexID = 0;
 
     // Generate and bind the vertex array object
@@ -558,9 +558,13 @@ void drawTransformation(GLFWwindow *window, int uniformLocation)
 
 void cameraMovement(GLFWwindow *window, int uniformLocation, float *motion)
 {
-    // Build the matrix that we need
+    // Start with and identity matrix
     glm::mat4x4 matrix = glm::mat4();
+
+    // Build the perspective matrix
     glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowHeight / windowWidth), 1.0f, 150.0f);
+
+    // Build the view matrix
     glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
     glm::mat4x4 TMatrix = glm::translate(matrix, TVector);
     glm::mat4x4 RXMatrix = glm::rotate(matrix, motion[3], glm::vec3(1.0f, 0.0f, 0.0f));
@@ -760,13 +764,6 @@ void handleKeyboardInputMotion(GLFWwindow *window, float *motion)
         motion[4] = motion[4] - 0.01f;
 
     }
-
-    // if(glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-    // {
-    //     path.advanceToNextWaypoint();
-    //     motion[5] = path.getCurrentWaypoint(15.0f).x;
-    //     motion[6] = path.getCurrentWaypoint(15.0f).y;
-    // }
 }
 
 void handleKeyboardInput(GLFWwindow *window)
@@ -778,14 +775,8 @@ void handleKeyboardInput(GLFWwindow *window)
     }
 }
 
-SceneNode *constructSceneGraph()
+SceneNode *constructSceneGraph(MinecraftCharacter &steve, Mesh &terrain, float3 initialPosition)
 {
-
-    // Load the minecraft characters
-    MinecraftCharacter steve = loadMinecraftCharacterModel("../gloom/res/steve.obj");
-    // Create the terrain upon what the character walk
-    Mesh terrain = generateChessboard(5, 5, 15.0f, float4(1.0f, 0.0f, 0.0f, 1.0f), float4(0.0f, 1.0f, 0.0f, 1.0f));
-
     // Generate one SceneNode for each object
     SceneNode *rootNode = createSceneNode();
     SceneNode *leftLegNode = createSceneNode();
@@ -796,6 +787,7 @@ SceneNode *constructSceneGraph()
     SceneNode *headNode = createSceneNode();
     SceneNode *terrainNode = createSceneNode();
 
+    // Assign a name to all the node
     torsoNode->name = "torso";
     headNode->name = "head";
     leftLegNode->name = "leftLeg";
@@ -831,16 +823,16 @@ SceneNode *constructSceneGraph()
     rightArmNode->VAOIndexCount = steve.rightArm.vertices.size() * 4;
     terrainNode->VAOIndexCount = terrain.vertices.size() * 4;
 
-    //torsoNode->position = initialPosition;
+    torsoNode->position = initialPosition;
 
     // Set the reference point of each object
-    leftLegNode->referencePoint = float3(-2, 12, 0);
-    rightLegNode->referencePoint = float3(2, 12, 0);
-    leftArmNode->referencePoint = float3(-4, 22, 0);
-    rightArmNode->referencePoint = float3(4, 22, 0);
-    headNode->referencePoint = float3(0, 24, 0);
-    torsoNode->referencePoint = float3(0, 12, 0);
-    terrainNode->referencePoint = float3(0, 0, 0);
+    leftLegNode->referencePoint = float3(-2, 12, 0) ;
+    rightLegNode->referencePoint = float3(2, 12, 0) ;
+    leftArmNode->referencePoint = float3(-4, 22, 0) ;
+    rightArmNode->referencePoint = float3(4, 22, 0) ;
+    headNode->referencePoint = float3(0, 24, 0) ;
+    torsoNode->referencePoint = float3(0, 12, 0) + initialPosition ;
+    terrainNode->referencePoint = float3(0, 0, 0) ;
 
     printScene(rootNode);
     // Return the root node
@@ -850,25 +842,23 @@ SceneNode *constructSceneGraph()
 void printScene(SceneNode *rootNode)
 {
     printNode(rootNode);
-    for(int i = 0; i < rootNode->children.size(); i++)
+    for(unsigned int i = 0; i < rootNode->children.size(); i++)
     {
         printScene(rootNode->children.at(i));
     }
 }
 
-void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float *motion, int uniformLocation, float rotation, float2 movement, float angle)
+//TODO use push and pop function in scene graph
+void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float rotation, float2 movement, float angle, std::stack<glm::mat4> *stack)
 {
-    // do tansformation
+    // Update the position, rotation and reference point of the interested node
     if(node->name == "torso")
     {
         node->position.x += movement.x;
         node->position.z += movement.y;
-        node->rotation.y = angle;
-    }
-    if(node->name != "terrain")
-    {
         node->referencePoint.x += movement.x;
         node->referencePoint.z += movement.y;
+        node->rotation.y = angle;
     }
 
     if((node->name == "leftArm") || (node->name == "rightLeg"))
@@ -881,62 +871,143 @@ void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float *mot
         node->rotation.x -= rotation;
     }
 
+    // Start with the identity matrix
     glm::mat4 matrix = glm::mat4();
+
+    // Compute the translation matrix of the node
     glm::mat4x4 TMatrix = glm::translate(matrix, glm::vec3(node->position.x, node->position.y, node->position.z));
+
+    // Compute the matrices needed to rotate around the reference point of the node
     glm::mat4x4 TReferenceMatrix = glm::translate(matrix, glm::vec3(node->referencePoint.x, node->referencePoint.y, node->referencePoint.z));
     glm::mat4x4 inverseTReferenceMatrix = glm::translate(matrix, glm::vec3( - node->referencePoint.x, - node->referencePoint.y, - node->referencePoint.z));
-    glm::mat4x4 alignMatrix = glm::rotate(matrix, float(abs(PI/2 - node->rotation.y)), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4x4 inverseAlignMatrix = glm::rotate(matrix, float(- (abs(PI/2 - node->rotation.y))), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4x4 RXMatrix = inverseAlignMatrix * glm::rotate(matrix, node->rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) * alignMatrix;
+    glm::mat4x4 RXMatrix = glm::rotate(matrix, node->rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4x4 RYMatrix = glm::rotate(matrix, node->rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4x4 RZMatrix = glm::rotate(matrix, node->rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    node->currentTransformationMatrix = TReferenceMatrix * RXMatrix * RYMatrix *  RZMatrix * inverseTReferenceMatrix * TMatrix * transformationThusFar;
+    // Compute the model matrix of the node
+    node->currentTransformationMatrix = TReferenceMatrix * RXMatrix * RYMatrix * RZMatrix * inverseTReferenceMatrix * TMatrix;
 
-    // Build the matrix that we need
+    // Multiply the model matrix of the current node for the model matrix of the parent node
+    node->currentTransformationMatrix =  transformationThusFar * node->currentTransformationMatrix;
+
+    // Push the model matrix on the stack
+    pushMatrix(stack, node->currentTransformationMatrix);
+
+    // visit all the children node
+    for(SceneNode *child : node->children)
+    {
+        visitSceneNode(child, node->currentTransformationMatrix, rotation, movement, angle, stack);
+    }
+
+    // pop the model matrix of the current node from the stack
+    popMatrix(stack);
+}
+
+void drawSceneNode(SceneNode *node, float *motion, int uniformLocation)
+{
+
+    // Start with and identity matrix
+    glm::mat4x4 matrix = glm::mat4x4();
+
+    // Build the perspective matrx
     glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowHeight / windowWidth), 1.0f, 150.0f);
+
+    // Build the view matrix
     glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
     glm::mat4x4 T1Matrix = glm::translate(matrix, TVector);
     glm::mat4x4 RX1Matrix = glm::rotate(matrix, motion[3], glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4x4 RY1Matrix = glm::rotate(matrix, motion[4], glm::vec3(0.0f, 1.0f, 0.0f));
 
-    // Compute the final matrix
+    // Compute the MVP matrix
     matrix = matrixPerspective * RX1Matrix * RY1Matrix * T1Matrix * node->currentTransformationMatrix;
 
+    // Update the uniform variable in the vertex shader
     glUniformMatrix4fv(uniformLocation, 1, 0, glm::value_ptr(matrix));
 
+    // Draw the current node
     glBindVertexArray(node->vertexArrayObjectID);
     glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, 0);
 
     for(SceneNode *child : node->children)
     {
-        visitSceneNode(child, node->currentTransformationMatrix, motion, uniformLocation, rotation, movement, angle);
+        drawSceneNode(child, motion, uniformLocation);
     }
 }
 
-//TODO move load and creatinhg mesh in drawScene
+void computeWalkingParameter(float Dx, float Dy, float2 &movement, float &rotation, float2 &currentWaypoint, float &increment)
+{
+
+    movement.x = (Dx != 0) ? (0.1 * (Dx / abs(Dx))) : 0;
+    movement.y = (Dy != 0) ? (0.1 * (Dy / abs(Dy))) : 0;
+
+    currentWaypoint += movement;
+
+    rotation -= increment;
+
+    increment = (rotation >= 0.5 || rotation <= -0.5) ? (increment * (-1)) : increment;
+
+}
+
+void computeAngleNextWaypoint(float dx, float dy, float &angle)
+{
+    angle = atan2(abs(dy), abs(dx));
+    if(dx != 0)
+    {
+        angle = (dy <= 0 ) ? ((PI / 2 + angle) * (dx / abs(dx))) : (angle * (dx / abs(dx)));
+    }
+    else
+    {
+        angle = (dy < 0) ? (angle + PI / 2) : 0;
+    }
+}
+
 //TODO create a function to make the character walking
 //TODO create a funciton to make the character moving to the next waypoint
 void drawScene(GLFWwindow *window, int uniformLocation)
 {
+    // Load the minecraft characters
+    MinecraftCharacter steve = loadMinecraftCharacterModel("../gloom/res/steve.obj");
+
+    // Create the terrain upon what the character walk
+    float tileWidth = 15.0f;
+    int terrain_width = 5;
+    int terrain_height = 5;
+    float4 color1 = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    float4 color2 = float4(0.0f, 1.0f, 0.0f, 1.0f);
+    Mesh terrain = generateChessboard(terrain_width, terrain_height, tileWidth, color1, color2);
+
+    // Load the path that the character will follow and get the next way point
     Path path("pathFiles/coordinates_0.txt");
-    float2 currentWaypoint = float2(0.0f, 0.0f);
+    float2 currentWaypoint = path.getCurrentWaypoint(tileWidth);
+    path.advanceToNextWaypoint();
+    float2 nextWaypoint = path.getCurrentWaypoint(tileWidth);
     float2 movement;
-    short firstTime = 1;
 
-    SceneNode *rootNode = constructSceneGraph();
-    float2 nextWaypoint = path.getCurrentWaypoint(15.0f);
+    // Construct the scene graph
+    float3 initialPosition = float3(currentWaypoint.x, 0.0f, currentWaypoint.y);
+    SceneNode *rootNode = constructSceneGraph(steve, terrain, initialPosition);
 
+    // Create the stack for the transform matrices
+    std::stack<glm::mat4> *stack = createEmptyMatrixStack();
+
+    // Initialize the stack matrices with the identity matrix of the rootNode
     rootNode->currentTransformationMatrix = glm::mat4();
-    // x, y, z, x angle, y angle;
-    float motion[7] = {-80.0f, -20.0f, -85.0f, 0.20f, -0.80f, 0.0f, 0.0f};
+    pushMatrix(stack, rootNode->currentTransformationMatrix);
+
+    // x, y, z, x angle, y angle, for the camera movement;
+    float motion[7] = {-80.0f, -20.0f, -85.0f, 0.20f, -0.80f};
+
     double total = 0.0;
     double treshold = 0.005;
     float rotation = 0.0f;
-    float i = 0.01f;
-    float Dx = nextWaypoint.x - currentWaypoint.x;
-    float Dy = nextWaypoint.y - currentWaypoint.y;
+    float increment = 0.01f;
     float angle = 0.0f;
+    short stop = 0;
+    short count = 0;
+    float dx = nextWaypoint.x - currentWaypoint.x;
+    float dy = nextWaypoint.y - currentWaypoint.y;
+
+    computeAngleNextWaypoint(dx, dy, angle);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -947,89 +1018,58 @@ void drawScene(GLFWwindow *window, int uniformLocation)
         if(total >= treshold)
         {
 
-            if(path.hasWaypointBeenReached(currentWaypoint, 15.0f))
+            if(path.hasWaypointBeenReached(currentWaypoint, tileWidth))
             {
                 currentWaypoint = nextWaypoint;
                 path.advanceToNextWaypoint();
-                nextWaypoint = path.getCurrentWaypoint(15.0f);
-                
-                float dx = nextWaypoint.x - currentWaypoint.x;
-                float dy = nextWaypoint.y - currentWaypoint.y;
-                angle = atan2(abs(dy), abs(dx));
-                if(dy <= 0 && dx < 0){
-                    angle = -(90 + angle);
-                } else if (dy <= 0 && dx >= 0){
-                    angle = 90 + angle;
-                } else if (dy > 0 && dx <0){
-                    angle = angle * (-1);
-                } else if (dy > 0 && dx > 0){
-                    angle = angle;
-                } else {
-                    angle = 0;
-                }
-                std::cout << "angle = " << angle << std::endl;
-                std::cout << "currentWaypoint = " << currentWaypoint << std::endl;
-                std::cout << "nextWaypoint = " << nextWaypoint << std::endl;
-                std::cout << std::endl;
+                nextWaypoint = path.getCurrentWaypoint(tileWidth);
+
+                dx = nextWaypoint.x - currentWaypoint.x;
+                dy = nextWaypoint.y - currentWaypoint.y;
+                computeAngleNextWaypoint(dx, dy, angle);
+            //     stop = 1;
+            //     increment = 0;
+            //     movement = 0;
+            // }
+            // else if(stop)
+            // {
+            //     count ++;
+            //     if (count == 50){
+            //         stop = 0;
+            //         increment = 0.01;
+            //         count = 0;
+            //     }
             }
             else
             {
-                Dx = nextWaypoint.x - currentWaypoint.x;
-                Dy = nextWaypoint.y - currentWaypoint.y;
-                if(Dx < 0)
-                {
-                    movement.x = -0.1;
-                }
-                else if (Dx > 0)
-                {
-                    movement.x = + 0.1;
-                }
-                else
-                {
-                    movement.x = 0;
-                }
-
-                if(Dy < 0)
-                {
-                    movement.y = -0.1;
-                }
-                else if (Dy > 0)
-                {
-                    movement.y = + 0.1;
-                }
-                else
-                {
-                    movement.y = 0;
-                }
-                currentWaypoint += movement;
-                rotation -= i;
-
-                if(rotation >= 0.5)
-                {
-                    i = 0.01;
-                }
-                if(rotation <= -0.5f)
-                {
-                    i = -0.01;
-                }
-                // movement.x = motion[5];
-                // movement.y = motion[6];‚
+                dx = nextWaypoint.x - currentWaypoint.x;
+                dy = nextWaypoint.y - currentWaypoint.y;
+                computeWalkingParameter(dx, dy, movement, rotation, currentWaypoint, increment);
             }
 
         }
 
+        // Visit the scene graph and compute the transformation matrix of each node
+        visitSceneNode(rootNode, rootNode->currentTransformationMatrix, increment, movement, angle, stack);
 
-        //std::cout << "rotation: " << rotation << std::endl;
-
-        visitSceneNode(rootNode, rootNode->currentTransformationMatrix, motion, uniformLocation, i, movement, angle);
+        // Visit the scene graph and draw each node
+        drawSceneNode(rootNode, motion, uniformLocation);
 
         // Handle other events
         glfwPollEvents();
         handleKeyboardInputMotion(window, motion);
+
         // Flip buffers
         glfwSwapBuffers(window);
     }
 }
+
+
+
+
+
+
+
 
 
 

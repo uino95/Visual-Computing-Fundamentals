@@ -171,10 +171,10 @@ void colourFaces(Mesh &mesh) {
 	// Allocate capacity
 	mesh.colours.resize(mesh.vertices.size(), 0);
 	float4 color1 = {1.0f,0.0f,0.0f,1.0f};
-	float4 color2 = {0.0f,1.0f,0.0f,1.0f};
-	float4 color3 = {0.0f,0.0f,1.0f,1.0f};
-	float4 color4 = {0.0f,0.0f,0.0f,1.0f};
-	float4 color5 = {1.0f,1.0f,1.0f,1.0f};
+	float4 color2 = {0.0f,0.0f,1.0f,1.0f};
+	float4 color3 = {1.0f,1.0f,0.0f,1.0f};
+	float4 color4 = {1.0f,1.0f,0.0f,1.0f};
+	float4 color5 = {1.0f,1.0f,0.0f,1.0f};
 	float4 color6 = {1.0f,1.0f,0.0f,1.0f};
 	std::vector<float4> colors;
 	colors.push_back(color1);

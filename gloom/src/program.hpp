@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 #include <string>
 #include "floats.hpp"
-#include "SceneGraph.hpp"
+#include "sceneGraph.hpp"
 #include <glm/mat4x4.hpp>
 
 // Main OpenGL program
@@ -55,7 +55,9 @@ void drawChild(SceneNode * node);
 
 void drawScene(GLFWwindow *window, int uniformLocation);
 
-void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float* motion, int uniformLocation, float rotation, float2 movement);
+void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float rotation, float2 movement, float angle, std::stack<glm::mat4> *stack);
+
+void drawSceneNode(SceneNode *node, float *motion, int uniformLocation);
 
 // Checks for whether an OpenGL error occurred. If one did,
 // it prints out the error type and ID
