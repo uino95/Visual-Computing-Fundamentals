@@ -10,6 +10,8 @@
 #include "floats.hpp"
 #include "sceneGraph.hpp"
 #include <glm/mat4x4.hpp>
+#include "OBJLoader.hpp"
+#include "toolbox.hpp"
 
 // Main OpenGL program
 void runProgram(GLFWwindow* window);
@@ -49,9 +51,7 @@ void handleKeyboardInputMotion(GLFWwindow* window, float* motion);
 
 void printScene(SceneNode* rootNode);
 
-SceneNode* constructSceneGraph();
-
-void drawChild(SceneNode * node);
+SceneNode *constructSceneGraph(MinecraftCharacter &steve, Mesh &terrain, float3 initialPosition);
 
 void drawScene(GLFWwindow *window, int uniformLocation);
 

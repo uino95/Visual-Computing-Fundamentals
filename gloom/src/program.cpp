@@ -9,8 +9,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "OBJLoader.hpp"
-#include "toolbox.hpp"
+
 #include "sceneGraph.hpp"
 
 #define PI 3.14159265
@@ -59,9 +58,9 @@ void runProgram(GLFWwindow *window)
     //drawSpiral(window, 0.0, 0.0, 0.5, 5);                             //shaders: simple.vert and simple.frag
     //drawChangingColorInTime(window, uniformLocation);                 //shaders: simple.vert and changeColorInTime.frag
     //drawTrheeOverlappingTriangle(window);                             //shaders: simple.vert and simple.frag
-    //drawTransformation(window, uniformMatrixLocation);                //shaders: transfromation.vert and simple.frag
-    //camera(window, uniformMatrixLocation);                            //shaders: transfromation.vert and simple.frag
-    //drawSteve(window, uniformMatrixLocation);                         //shaders: transfromation.vert and simple.frag
+    //drawTransformation(window, uniformMatrixLocation);                //shaders: transformation.vert and simple.frag
+    //camera(window, uniformMatrixLocation);                            //shaders: transformation.vert and simple.frag
+    //drawSteve(window, uniformMatrixLocation);                         //shaders: transformation.vert and simple.frag
 
     //printScene(constructSceneGraph());
     drawScene(window, uniformMatrixLocation);                           //shaders: transfromation.vert and simple.frag
@@ -562,7 +561,7 @@ void cameraMovement(GLFWwindow *window, int uniformLocation, float *motion)
     glm::mat4x4 matrix = glm::mat4();
 
     // Build the perspective matrix
-    glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowHeight / windowWidth), 1.0f, 150.0f);
+    glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowWidth/windowHeight), 1.0f, 150.0f);
 
     // Build the view matrix
     glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
@@ -937,7 +936,7 @@ void drawSceneNode(SceneNode *node, float *motion, int uniformLocation)
 
 void computeWalkingParameter(float Dx, float Dy, float2 &movement, float &rotation, float2 &currentWaypoint, float &increment)
 {
-
+    
     movement.x = (Dx != 0) ? (0.1 * (Dx / abs(Dx))) : 0;
     movement.y = (Dy != 0) ? (0.1 * (Dy / abs(Dy))) : 0;
 
@@ -962,8 +961,6 @@ void computeAngleNextWaypoint(float dx, float dy, float &angle)
     }
 }
 
-//TODO create a function to make the character walking
-//TODO create a funciton to make the character moving to the next waypoint
 void drawScene(GLFWwindow *window, int uniformLocation)
 {
     // Load the minecraft characters
@@ -1064,3 +1061,4 @@ void drawScene(GLFWwindow *window, int uniformLocation)
         glfwSwapBuffers(window);
     }
 }
+

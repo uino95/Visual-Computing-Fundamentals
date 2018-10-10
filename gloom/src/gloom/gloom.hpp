@@ -10,9 +10,9 @@
 #include <string>
 
 // Constants
-const int         windowWidth     = 700.0;
-const int         windowHeight    = 700.0;
-const std::string windowTitle     = "OpenGL";
+const int         windowWidth     = 900.0;
+const int         windowHeight    = 900.0;
+const std::string windowTitle     = "Minecraft";
 const GLint       windowResizable = GL_TRUE;
 const int         windowSamples   = 4;
 
