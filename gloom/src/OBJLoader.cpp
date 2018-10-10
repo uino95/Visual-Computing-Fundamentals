@@ -167,7 +167,7 @@ std::vector<Mesh> loadWavefront(std::string const srcFile, bool quiet)
 
 void colourFaces(Mesh &mesh) {
 	int sides = mesh.faceCount() / 2;
-	std::cout << "sides " << sides << std::endl;
+	
 	// Allocate capacity
 	mesh.colours.resize(mesh.vertices.size(), 0);
 	float4 color1 = {1.0f,0.0f,0.0f,1.0f};

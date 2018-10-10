@@ -64,7 +64,7 @@ void runProgram(GLFWwindow *window)
     //drawSteve(window, uniformMatrixLocation);                         //shaders: transfromation.vert and simple.frag
 
     //printScene(constructSceneGraph());
-    drawScene(window, uniformMatrixLocation);
+    drawScene(window, uniformMatrixLocation);                           //shaders: transfromation.vert and simple.frag
 }
 
 void draw(GLFWwindow *window, unsigned int vaoID, int number_of_vertices, int mode)
@@ -815,13 +815,13 @@ SceneNode *constructSceneGraph(MinecraftCharacter &steve, Mesh &terrain, float3 
     headNode->vertexArrayObjectID = setUpVAOWithColorFloat4(steve.head.vertices, &steve.head.indices[0], steve.head.vertices.size() * 4, steve.head.indices.size(), 4, steve.head.colours, steve.head.colours.size() * 4);
     terrainNode->vertexArrayObjectID = setUpVAOWithColorFloat4(terrain.vertices, &terrain.indices[0], terrain.vertices.size() * 4, terrain.indices.size(), 4, terrain.colours, terrain.colours.size() * 4);
 
-    torsoNode->VAOIndexCount = steve.torso.vertices.size() * 4;
-    headNode->VAOIndexCount = steve.head.vertices.size() * 4;
-    leftLegNode->VAOIndexCount = steve.leftLeg.vertices.size() * 4;
-    leftArmNode->VAOIndexCount = steve.leftArm.vertices.size() * 4;
-    rightLegNode->VAOIndexCount = steve.rightLeg.vertices.size() * 4;
-    rightArmNode->VAOIndexCount = steve.rightArm.vertices.size() * 4;
-    terrainNode->VAOIndexCount = terrain.vertices.size() * 4;
+    torsoNode->VAOIndexCount = steve.torso.indices.size();
+    headNode->VAOIndexCount = steve.head.indices.size();
+    leftLegNode->VAOIndexCount = steve.leftLeg.indices.size();
+    leftArmNode->VAOIndexCount = steve.leftArm.indices.size();
+    rightLegNode->VAOIndexCount = steve.rightLeg.indices.size();
+    rightArmNode->VAOIndexCount = steve.rightArm.indices.size();
+    terrainNode->VAOIndexCount = terrain.indices.size();
 
     torsoNode->position = initialPosition;
 
@@ -848,7 +848,6 @@ void printScene(SceneNode *rootNode)
     }
 }
 
-//TODO use push and pop function in scene graph
 void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float rotation, float2 movement, float angle, std::stack<glm::mat4> *stack)
 {
     // Update the position, rotation and reference point of the interested node
@@ -905,28 +904,30 @@ void visitSceneNode(SceneNode *node, glm::mat4 transformationThusFar, float rota
 
 void drawSceneNode(SceneNode *node, float *motion, int uniformLocation)
 {
+    if(node->name != "root")
+    {
+        // Start with and identity matrix
+        glm::mat4x4 matrix = glm::mat4x4();
 
-    // Start with and identity matrix
-    glm::mat4x4 matrix = glm::mat4x4();
+        // Build the perspective matrx
+        glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowHeight / windowWidth), 1.0f, 150.0f);
 
-    // Build the perspective matrx
-    glm::mat4x4 matrixPerspective = glm::perspective(glm::pi<float>() * 0.5f, float(windowHeight / windowWidth), 1.0f, 150.0f);
+        // Build the view matrix
+        glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
+        glm::mat4x4 T1Matrix = glm::translate(matrix, TVector);
+        glm::mat4x4 RX1Matrix = glm::rotate(matrix, motion[3], glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4x4 RY1Matrix = glm::rotate(matrix, motion[4], glm::vec3(0.0f, 1.0f, 0.0f));
 
-    // Build the view matrix
-    glm::vec3 TVector = glm::vec3(motion[0], motion[1], motion[2]);
-    glm::mat4x4 T1Matrix = glm::translate(matrix, TVector);
-    glm::mat4x4 RX1Matrix = glm::rotate(matrix, motion[3], glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4x4 RY1Matrix = glm::rotate(matrix, motion[4], glm::vec3(0.0f, 1.0f, 0.0f));
+        // Compute the MVP matrix
+        matrix = matrixPerspective * RX1Matrix * RY1Matrix * T1Matrix * node->currentTransformationMatrix;
 
-    // Compute the MVP matrix
-    matrix = matrixPerspective * RX1Matrix * RY1Matrix * T1Matrix * node->currentTransformationMatrix;
+        // Update the uniform variable in the vertex shader
+        glUniformMatrix4fv(uniformLocation, 1, 0, glm::value_ptr(matrix));
 
-    // Update the uniform variable in the vertex shader
-    glUniformMatrix4fv(uniformLocation, 1, 0, glm::value_ptr(matrix));
-
-    // Draw the current node
-    glBindVertexArray(node->vertexArrayObjectID);
-    glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, 0);
+        // Draw the current node
+        glBindVertexArray(node->vertexArrayObjectID);
+        glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, 0);
+    }
 
     for(SceneNode *child : node->children)
     {
@@ -977,7 +978,7 @@ void drawScene(GLFWwindow *window, int uniformLocation)
     Mesh terrain = generateChessboard(terrain_width, terrain_height, tileWidth, color1, color2);
 
     // Load the path that the character will follow and get the next way point
-    Path path("pathFiles/coordinates_0.txt");
+    Path path("coordinates_0.txt");
     float2 currentWaypoint = path.getCurrentWaypoint(tileWidth);
     path.advanceToNextWaypoint();
     float2 nextWaypoint = path.getCurrentWaypoint(tileWidth);
@@ -1027,18 +1028,18 @@ void drawScene(GLFWwindow *window, int uniformLocation)
                 dx = nextWaypoint.x - currentWaypoint.x;
                 dy = nextWaypoint.y - currentWaypoint.y;
                 computeAngleNextWaypoint(dx, dy, angle);
-            //     stop = 1;
-            //     increment = 0;
-            //     movement = 0;
-            // }
-            // else if(stop)
-            // {
-            //     count ++;
-            //     if (count == 50){
-            //         stop = 0;
-            //         increment = 0.01;
-            //         count = 0;
-            //     }
+                //     stop = 1;
+                //     increment = 0;
+                //     movement = 0;
+                // }
+                // else if(stop)
+                // {
+                //     count ++;
+                //     if (count == 50){
+                //         stop = 0;
+                //         increment = 0.01;
+                //         count = 0;
+                //     }
             }
             else
             {
@@ -1063,16 +1064,3 @@ void drawScene(GLFWwindow *window, int uniformLocation)
         glfwSwapBuffers(window);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
